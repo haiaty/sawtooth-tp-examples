@@ -17,10 +17,17 @@ version: "2.1"
 
 services:
   # nodejs hv tp
-  nodejs-hv-tp:
+  #nodejs-hv-tp:
+  #  build:
+   #   context: ./node-hv-tp  #where search for the dockerfile
+    #  dockerfile: Dockerfile
+    #entrypoint: tail -f /dev/null 
+    #volumes:
+    #  - ./node-hv-tp/.:/src/
+  rust-hv-tp:
     build:
-      context: ./node-hv-tp  #where search for the dockerfile
+      context: ./rust-hv-tp  #where search for the dockerfile
       dockerfile: Dockerfile
     entrypoint: tail -f /dev/null 
     volumes:
-      - ./node-hv-tp/.:/src/
+      - ./rust-hv-tp/.:/rust-hv-tp/

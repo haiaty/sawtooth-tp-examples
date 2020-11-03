@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
+    "axios": "^0.21.0",
     "dotenv": "^8.2.0",
+    "json-stringify-deterministic": "^1.0.1",
     "sawtooth-sdk": "^1.0.5"
   },
   "devDependencies": {},

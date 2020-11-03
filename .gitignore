@@ -1,2 +1,4 @@
 node-hv-tp/node_modules/
 node-hv-tp/.env
+node-hv-tp/some.batches
+rust-hv-tp/target/
