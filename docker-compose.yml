@@ -1,21 +1,30 @@
-version: "2.1"
+version: "3.6"
 
 services:
   nodejs-hv-tp:
     build:
       context: ./node-hv-tp  #where search for the dockerfile
       dockerfile: Dockerfile
-    entrypoint: bash -c \"\
-        cd /src/ && \
-        npm install && \
-        tail -f /dev/null
-        \"" 
+    command: |
+              bash -c "
+              cd /src/ && \
+              npm install && \
+              node index.js
+              "
     volumes:
       - ./node-hv-tp/.:/src/
-  rust-hv-tp:
-    build:
-      context: ./rust-hv-tp  #where search for the dockerfile
-      dockerfile: Dockerfile
-    entrypoint: tail -f /dev/null 
-    volumes:
-      - ./rust-hv-tp/.:/rust-hv-tp/
+
+# UNCOMMENT IF YOU WANT TO RUN RUST TP
+#  rust-hv-tp:
+#    build:
+#      context: ./rust-hv-tp  #where search for the dockerfile
+#      dockerfile: Dockerfile
+#     entrypoint: tail -f /dev/null 
+#    volumes:
+#      - ./rust-hv-tp/.:/rust-hv-tp/
+
+# COMMENT IF YOU DON'T WANT TO ATTACH AN EXISTING NETWORK 
+networks:
+  default:
+    external:
+      name: 0-validator-sawtooth_default
