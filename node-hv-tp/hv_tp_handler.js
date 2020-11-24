@@ -7,7 +7,10 @@ const stringify = require('json-stringify-deterministic')
 const  {TP_FAMILY, TP_NAMESPACE, TP_VERSION, hash} = require('./env');
 
 
-//NOTE: errors will be logged in the validator
+//NOTES: 
+// - errors will be logged in the validator, therefore you should open the /var/log/sawtooth/validator-error.logs to see them
+// - the output of the console will be logged in the standart output of the machine that you have started the transaction processor. If it
+//   it is a docker container , then it is in its logs
 
 class HvTpHandler extends TransactionHandler {
   constructor() {
@@ -16,63 +19,55 @@ class HvTpHandler extends TransactionHandler {
   }
 
 
-  // !!!!! ATTENTTION !!!! -  JSON.stringify IS NOT DETERMINISTIC - https://stackoverflow.com/questions/42491226/is-json-stringify-deterministic-in-v8
-
-  /*
-> obj1 = {};
-> obj1.b = 5;
-> obj1.a = 15;
-
-> obj2 = {};
-> obj2.a = 15;
-> obj2.b = 5;
-
-> JSON.stringify(obj1)
-'{"b":5,"a":15}'
-> JSON.stringify(obj2)
-'{"a":15,"b":5}'
-
-
-maybe this could help: (to try first)
-
-const sortObj = (obj) => (
-  obj === null || typeof obj !== 'object'
-  ? obj
-  : Array.isArray(obj)
-  ? obj.map(sortObj)
-  : Object.assign({}, 
-      ...Object.entries(obj)
-        .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
-        .map(([k, v]) => ({ [k]: sortObj(v) }),
-    ))
-);
-
-
-or this library:
-
-npm install json-stringify-deterministic --save
-
-https://www.npmjs.com/package/json-stringify-deterministic
-
-  */
+  /**
+   * 
+   * @param {*} transaction 
+   * @param {*} context 
+   */
   apply(transaction, context) {
 
+    // here we get the bytes in the transaction payload.
+    // Remember that we have a stream of bytes as the payload from sawtooth transaction
+    // so we need to convert those bytes into an object...
      let payloadFromClientBytes = transaction.payload;
 
+     //...and to do so, we first convert the bytes to string
+     // and parse that string to an object
      let payloadFromClient = JSON.parse(payloadFromClientBytes.toString());
 
      console.log(payloadFromClient);
+     
+     // here we get the uuid because we will need to constrcut
+     // the merkle tree leaf address
      let uuid = payloadFromClient.uuid;
-      console.log(uuid);
-
+   
       // here we create the address with the uuid.
-      // the address is a kind of uuid on the blockchain merkle tree
+      // the address is a kind of uuid on the blockchain merkle tree, because 
+      // it identifies a single leaf having a value
       const address = `${TP_NAMESPACE}${hash(uuid).substr(0,64)}`;
+      
       console.log(address);
 
+     
+      if(! payloadFromClient.hasOwnProperty("dataToStoreOnBlockchain")) {
+        throw new InvalidTransaction("The payload sent to the transaction handler does not contain the property 'dataToStoreOnBlockchain'")
+      }
+
+      // we need to store the value of the address
+      // as a buffer of bytes and we MUST BE SURE that the value stored
+      // is deterministic, which means that every time we transform it into bytes
+      // we will get the same sequence of bytes. Why we must assure that it should be deterministic? because
+      // the transaction handler will be executed in every node (and could be executed several times) therefore
+      // it should give the same value otherwise we could have different merkle tree hashes and the block 
+      // will be invalid. 
+      // NOTE: we are using the stringify function wich is from a library that guarantee that the object will always give the same string.
+      // we can't use JSON.stringify because it IS NOT DETERMINISTIC - https://stackoverflow.com/questions/42491226/is-json-stringify-deterministic-in-v8
       let entries = {
           [address]: Buffer.from(new String(stringify(payloadFromClient.dataToStoreOnBlockchain)))
       }
+
+      // and here we set the state into the blockchain. Obviously in order to have the state
+      // set the transaction should be valid end the block should be validated
       return context.setState(entries)
           .catch(error => {
               let message = (error.message) ? error.message : error

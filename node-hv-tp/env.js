@@ -9,7 +9,7 @@ const hash = (x) =>
 
 const TP_FAMILY = 'hv_tp'
 const TP_NAMESPACE = hash(TP_FAMILY).substring(0, 6)
-const TP_VERSION = '1.1.1'
+const TP_VERSION = '1.1.2'
 
 const env = {
   validatorUrl: process.env.VALIDATOR_URL || 'tcp://validator:4004',
