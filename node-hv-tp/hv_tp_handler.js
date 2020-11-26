@@ -24,7 +24,13 @@ class HvTpHandler extends TransactionHandler {
    * @param {*} transaction 
    * @param {*} context 
    */
-  apply(transaction, context) {
+  async apply(transaction, context) {
+
+    //console.log("ook");
+
+    let a = await _decodeRequest();
+
+    console.log("a:" + a);
 
     // here we get the bytes in the transaction payload.
     // Remember that we have a stream of bytes as the payload from sawtooth transaction
@@ -53,6 +59,19 @@ class HvTpHandler extends TransactionHandler {
         throw new InvalidTransaction("The payload sent to the transaction handler does not contain the property 'dataToStoreOnBlockchain'")
       }
 
+      //here we get the value of the address in the global state.
+      // the actual value is a object having the address as the key
+      // and the value is a buffer of bytes
+      let addressStateRaw = await context.getState([address]);
+
+      let valueAsByteBuffer = addressStateRaw[address];
+
+      let valueAsObject = JSON.parse(valueAsByteBuffer.toString());
+
+      console.log("actual state as json object:");
+      console.log(valueAsObject);
+
+    
       // we need to store the value of the address
       // as a buffer of bytes and we MUST BE SURE that the value stored
       // is deterministic, which means that every time we transform it into bytes
@@ -75,5 +94,31 @@ class HvTpHandler extends TransactionHandler {
           });
   }
 }
+
+
+const _decodeRequest = (payload) =>
+  new Promise((resolve, reject) => {
+
+    resolve(3);
+    
+    /*payload = payload.toString().split(',')
+    if (payload.length === 2) {
+      resolve({
+        action: payload[0],
+        amount: payload[1]
+      })
+    }
+   else if(payload.length === 3){ 
+	resolve({
+	  action:payload[0],
+	  amount:payload[1],
+	  toKey:payload[2]
+	})
+    }
+    else {
+      let reason = new InvalidTransaction('Invalid payload serialization')
+      reject(reason)
+    }*/
+})
 
 module.exports = HvTpHandler;

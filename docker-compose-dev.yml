@@ -1,0 +1,17 @@
+version: "3.6"
+
+services:
+  nodejs-hv-tp:
+    build:
+      context: ./node-hv-tp  #where search for the dockerfile
+      dockerfile: Dockerfile
+    expose:
+      - 4004  
+    entrypoint: |
+              bash -c "
+              cd /src/ && \
+              npm install && \
+              node index.js
+              "
+    volumes:
+      - ./node-hv-tp/.:/src/

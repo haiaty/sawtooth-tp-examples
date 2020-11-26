@@ -1,0 +1,15 @@
+FROM node:12.18.1
+
+RUN mkdir -p /src
+
+COPY . /src
+
+RUN  cd /src/ && \
+     npm install
+
+WORKDIR /src/
+
+EXPOSE 4004
+
+ENTRYPOINT ["node"]
+CMD ["index.js"]

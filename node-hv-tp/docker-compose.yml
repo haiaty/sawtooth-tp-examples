@@ -1,0 +1,22 @@
+version: "3.6"
+
+services:
+  nodejs-tp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hv-tp_1.1.2
+    command: |
+              bash -c "
+              cd /src/ && \
+              npm install && \
+              node index.js
+              "
+    volumes:
+      - ./node-hv-tp/.:/src/
+
+# COMMENT IF YOU DON'T WANT TO ATTACH AN EXISTING NETWORK 
+networks:
+  default:
+    external:
+      name: 0-validator-sawtooth_default
